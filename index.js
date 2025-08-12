@@ -100,12 +100,12 @@ app.delete("/songs/file/:filename", (req, res) => {
 });
 
 // Servir archivos estáticos del frontend (Vite build)
-app.use(express.static(path.join(__dirname, "dist")));
+//app.use(express.static(path.join(__dirname, "dist")));
 
 // Ruta fallback para que React maneje las rutas SPA
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
-});
+//app.get("*", (req, res) => {
+  //res.sendFile(path.join(__dirname, "dist", "index.html"));
+//});
 
 // 🚀 Iniciar servidor
 app.listen(PORT, () => {
