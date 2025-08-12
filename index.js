@@ -7,7 +7,7 @@ const path = require("path");
 const os = require("os");
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;  // <-- Aquí el cambio
 
 // 📁 Carpeta persistente para canciones y portadas
 const SONGS_DIR = path.join(os.homedir(), "Descargas", "youtube-mp3");
@@ -104,10 +104,11 @@ app.delete("/songs/file/:filename", (req, res) => {
 
 // Ruta fallback para que React maneje las rutas SPA
 //app.get("*", (req, res) => {
-  //res.sendFile(path.join(__dirname, "dist", "index.html"));
+//  res.sendFile(path.join(__dirname, "dist", "index.html"));
 //});
 
 // 🚀 Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🎶 Servidor corriendo en http://localhost:${PORT}`);
 });
+
