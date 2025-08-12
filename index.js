@@ -7,22 +7,18 @@ const path = require("path");
 const os = require("os");
 
 const app = express();
-const PORT = process.env.PORT || 3001;  // <-- Aquí el cambio
+const PORT = process.env.PORT || 3001;  // <-- Usa el puerto que venga de la variable de entorno
 
-// 📁 Carpeta persistente para canciones y portadas
 const SONGS_DIR = path.join(os.homedir(), "Descargas", "youtube-mp3");
 
-// Crear carpeta si no existe
 if (!fs.existsSync(SONGS_DIR)) {
   fs.mkdirSync(SONGS_DIR, { recursive: true });
 }
 
-// Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use("/songs", express.static(SONGS_DIR)); // Servir archivos desde carpeta
+app.use("/songs", express.static(SONGS_DIR)); 
 
-// 📥 Descargar canción y portada
 app.post("/download", async (req, res) => {
   const { url } = req.body;
 
@@ -30,7 +26,7 @@ app.post("/download", async (req, res) => {
     return res.status(400).json({ error: "URL no válida" });
   }
 
-  const ffmpegPath = "C:\\Users\\wilia\\Downloads\\ffmpeg\\bin"; // Ajusta si cambia tu ruta
+  const ffmpegPath = "C:\\Users\\wilia\\Downloads\\ffmpeg\\bin";
   const outputTemplate = path.join(SONGS_DIR, "%(title)s.%(ext)s");
 
   const command = `yt-dlp --write-thumbnail --embed-thumbnail --convert-thumbnail jpg -x --audio-format mp3 --ffmpeg-location "${ffmpegPath}" -o "${outputTemplate}" "${url}"`;
@@ -49,7 +45,6 @@ app.post("/download", async (req, res) => {
   });
 });
 
-// 🎵 Obtener canciones disponibles
 app.get("/songs", (req, res) => {
   const files = fs.readdirSync(SONGS_DIR);
 
@@ -62,10 +57,8 @@ app.get("/songs", (req, res) => {
       return {
         title: base,
         filename: mp3File,
-        audioUrl: `http://localhost:${PORT}/songs/${encodeURIComponent(mp3File)}`,
-        imageUrl: imageFile
-          ? `http://localhost:${PORT}/songs/${encodeURIComponent(imageFile)}`
-          : null,
+        audioUrl: `/songs/${encodeURIComponent(mp3File)}`,    // Mejor ruta relativa
+        imageUrl: imageFile ? `/songs/${encodeURIComponent(imageFile)}` : null,
       };
     });
 
@@ -73,16 +66,14 @@ app.get("/songs", (req, res) => {
   res.json(songs);
 });
 
-// ❌ Eliminar canción y portada
 app.delete("/songs/file/:filename", (req, res) => {
-  const filename = decodeURIComponent(req.params.filename); // ejemplo: cancion.mp3
+  const filename = decodeURIComponent(req.params.filename);
   const audioPath = path.join(SONGS_DIR, filename);
   const base = filename.replace(".mp3", "");
   const possibleImage = path.join(SONGS_DIR, base + ".jpg");
 
   console.log("🗑️ Intentando eliminar:", filename);
 
-  // Eliminar MP3
   if (fs.existsSync(audioPath)) {
     fs.unlinkSync(audioPath);
     console.log("✅ Canción eliminada:", filename);
@@ -90,7 +81,6 @@ app.delete("/songs/file/:filename", (req, res) => {
     console.warn("⚠️ No se encontró la canción:", filename);
   }
 
-  // Eliminar imagen si existe
   if (fs.existsSync(possibleImage)) {
     fs.unlinkSync(possibleImage);
     console.log("🖼️ Imagen eliminada:", base + ".jpg");
@@ -99,15 +89,6 @@ app.delete("/songs/file/:filename", (req, res) => {
   res.json({ message: "Eliminación completada" });
 });
 
-// Servir archivos estáticos del frontend (Vite build)
-//app.use(express.static(path.join(__dirname, "dist")));
-
-// Ruta fallback para que React maneje las rutas SPA
-//app.get("*", (req, res) => {
-//  res.sendFile(path.join(__dirname, "dist", "index.html"));
-//});
-
-// 🚀 Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🎶 Servidor corriendo en http://localhost:${PORT}`);
 });
